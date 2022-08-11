@@ -36,7 +36,7 @@ impl Cell {
     }
 
     pub fn toggle_option(&mut self, value: usize) {
-        self.options.values[value].valid = !self.options.values[value].valid;
+        self.options.values[value - 1].valid = !self.options.values[value - 1].valid;
     }
 
     pub fn set_value(&mut self, value: usize) {

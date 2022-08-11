@@ -42,16 +42,44 @@ impl Board {
 
     pub fn set_value(&mut self, value: usize) {
         let (x, y) = self.current_position;
-        if !self.grid.cells[x][y].initial {
-            self.grid.cells[x][y].set_value(value);
+        if self.grid.cells[x][y].initial {
+            return ();
+        };
+        self.grid.cells[x][y].set_value(value);
+
+        // TODO: check conflict
+
+        let mut i = 0;
+        loop {
+            self.grid.cells[i][self.current_position.1].toggle_option(value);
+            self.grid.cells[self.current_position.0][i].toggle_option(value);
+
+            i += 1;
+            if i == 9 {
+                break;
+            }
         }
+
+        // calculate top left position of box, color from there
+        let box_x: usize = x - (x % 3);
+        let box_y: usize = y - (y % 3);
+
+        self.grid.cells[box_y][box_x].toggle_option(value);
+        self.grid.cells[box_y][box_x + 1].toggle_option(value);
+        self.grid.cells[box_y][box_x + 2].toggle_option(value);
+        self.grid.cells[box_y + 1][box_x].toggle_option(value);
+        self.grid.cells[box_y + 1][box_x + 1].toggle_option(value);
+        self.grid.cells[box_y + 1][box_x + 2].toggle_option(value);
+        self.grid.cells[box_y + 2][box_x].toggle_option(value);
+        self.grid.cells[box_y + 2][box_x + 1].toggle_option(value);
+        self.grid.cells[box_y + 2][box_x + 2].toggle_option(value);
     }
 
     pub fn toggle_option(&mut self, value: usize) {
         let (x, y) = self.current_position;
         if !self.grid.cells[x][y].initial {
             self.grid.cells[x][y].value = 0;
-            self.grid.cells[x][y].toggle_option(value - 1);
+            self.grid.cells[x][y].toggle_option(value);
         }
     }
 
