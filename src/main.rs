@@ -14,12 +14,21 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use grid::Grid;
+use std::env;
 use std::{io, thread};
 use tui::{backend::CrosstermBackend, Terminal};
 use ui::UI;
 
 fn main() -> Result<(), io::Error> {
-    // let grid: Grid = Grid::default();
+    let args: Vec<String> = env::args().collect();
+    let input = &args[1];
+
+    if input.len() != 81 {
+        return Ok(());
+    }
+
+    let grid: Grid = Grid::from(input.to_string());
 
     // setup terminal
     enable_raw_mode()?;
@@ -30,7 +39,7 @@ fn main() -> Result<(), io::Error> {
 
     let events = Events::new();
 
-    let mut ui = UI::default();
+    let mut ui = UI::from(grid);
 
     let mut terminal = ui.run(terminal, events);
 

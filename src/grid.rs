@@ -13,6 +13,19 @@ pub struct Grid {
 }
 
 impl Grid {
+    pub fn from(input: String) -> Self {
+        let mut grid = Grid::default();
+        for (index, char) in input.chars().enumerate() {
+            if char != '0' {
+                let column = index % 9;
+                let row = (index - column) / 9;
+                grid.cells[row][column].initial = true;
+                grid.cells[row][column].value = char.to_digit(10).unwrap_or(0) as usize;
+            }
+        }
+        grid
+    }
+
     pub fn cell_at(&self, row: usize, column: usize) -> &Cell {
         &self.cells[row][column]
     }

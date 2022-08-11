@@ -3,7 +3,7 @@ use tui::{
     backend::CrosstermBackend,
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
-    style::Color,
+    style::{Color, Modifier, Style},
     widgets::{Block, Borders, StatefulWidget, Widget},
     Terminal,
 };
@@ -23,6 +23,13 @@ impl Default for Board {
 }
 
 impl Board {
+    pub fn from(grid: Grid) -> Self {
+        Self {
+            grid: grid,
+            current_position: (0, 0),
+        }
+    }
+
     pub fn move_up(&mut self) {
         self.current_position.0 = (9 + self.current_position.0 - 1) % 9;
         // TODO: recolour bg
@@ -41,18 +48,18 @@ impl Board {
     }
 
     pub fn set_value(&mut self, value: usize) {
-        let (x, y) = self.current_position;
-        if self.grid.cells[x][y].initial {
+        let (y, x) = self.current_position;
+        if self.grid.cells[y][x].initial {
             return ();
         };
-        self.grid.cells[x][y].set_value(value);
+        self.grid.cells[y][x].set_value(value);
 
         // TODO: check conflict
 
         let mut i = 0;
         loop {
-            self.grid.cells[i][self.current_position.1].toggle_option(value);
-            self.grid.cells[self.current_position.0][i].toggle_option(value);
+            self.grid.cells[i][self.current_position.1].remove_option(value);
+            self.grid.cells[self.current_position.0][i].remove_option(value);
 
             i += 1;
             if i == 9 {
@@ -64,15 +71,15 @@ impl Board {
         let box_x: usize = x - (x % 3);
         let box_y: usize = y - (y % 3);
 
-        self.grid.cells[box_y][box_x].toggle_option(value);
-        self.grid.cells[box_y][box_x + 1].toggle_option(value);
-        self.grid.cells[box_y][box_x + 2].toggle_option(value);
-        self.grid.cells[box_y + 1][box_x].toggle_option(value);
-        self.grid.cells[box_y + 1][box_x + 1].toggle_option(value);
-        self.grid.cells[box_y + 1][box_x + 2].toggle_option(value);
-        self.grid.cells[box_y + 2][box_x].toggle_option(value);
-        self.grid.cells[box_y + 2][box_x + 1].toggle_option(value);
-        self.grid.cells[box_y + 2][box_x + 2].toggle_option(value);
+        self.grid.cells[box_y][box_x].remove_option(value);
+        self.grid.cells[box_y][box_x + 1].remove_option(value);
+        self.grid.cells[box_y][box_x + 2].remove_option(value);
+        self.grid.cells[box_y + 1][box_x].remove_option(value);
+        self.grid.cells[box_y + 1][box_x + 1].remove_option(value);
+        self.grid.cells[box_y + 1][box_x + 2].remove_option(value);
+        self.grid.cells[box_y + 2][box_x].remove_option(value);
+        self.grid.cells[box_y + 2][box_x + 1].remove_option(value);
+        self.grid.cells[box_y + 2][box_x + 2].remove_option(value);
     }
 
     pub fn toggle_option(&mut self, value: usize) {
@@ -130,6 +137,80 @@ impl Board {
             self.grid.cells[x][y].fg = Color::Magenta;
         }
     }
+
+    pub fn autofill(&mut self) {
+        let mut y: usize = 0;
+        loop {
+            let mut x: usize = 0;
+            loop {
+                if self.grid.cells[y][x].value == 0 {
+                    // cell needs to be filled with notes
+
+                    // loop over possible values
+                    let mut value: usize = 1;
+                    loop {
+                        // check if sector contains value
+
+                        let mut possible = true;
+
+                        let mut i: usize = 0;
+
+                        // box
+                        let box_x: usize = x - (x % 3);
+                        let box_y: usize = y - (y % 3);
+
+                        if self.grid.cells[box_y][box_x].value == value
+                            || self.grid.cells[box_y][box_x + 1].value == value
+                            || self.grid.cells[box_y][box_x + 2].value == value
+                            || self.grid.cells[box_y + 1][box_x].value == value
+                            || self.grid.cells[box_y + 1][box_x + 1].value == value
+                            || self.grid.cells[box_y + 1][box_x + 2].value == value
+                            || self.grid.cells[box_y + 2][box_x].value == value
+                            || self.grid.cells[box_y + 2][box_x + 1].value == value
+                            || self.grid.cells[box_y + 2][box_x + 2].value == value
+                        {
+                            possible = false;
+                        }
+                        // line
+                        if possible {
+                            loop {
+                                if self.grid.cells[y][i].value == value
+                                    || self.grid.cells[i][x].value == value
+                                {
+                                    possible = false;
+                                    break;
+                                }
+
+                                i += 1;
+                                if i == 9 {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if possible {
+                            self.grid.cells[y][x].add_option(value);
+                        }
+
+                        value += 1;
+                        if value == 10 {
+                            break;
+                        }
+                    }
+                }
+
+                x += 1;
+                if x == 9 {
+                    break;
+                }
+            }
+
+            y += 1;
+            if y == 9 {
+                break;
+            }
+        }
+    }
 }
 
 pub struct BoardWidget {}
@@ -168,10 +249,19 @@ impl StatefulWidget for BoardWidget {
 
                 if cell.value != 0 {
                     // solved cell
-                    buf.get_mut(center_x, center_y)
-                        .set_char(value)
-                        .set_bg(cell.bg)
-                        .set_fg(cell.fg);
+
+                    if cell.initial {
+                        buf.get_mut(center_x, center_y)
+                            .set_char(value)
+                            .set_bg(cell.bg)
+                            .set_fg(cell.fg)
+                            .set_style(Style::default().add_modifier(Modifier::BOLD));
+                    } else {
+                        buf.get_mut(center_x, center_y)
+                            .set_char(value)
+                            .set_bg(cell.bg)
+                            .set_fg(cell.fg);
+                    }
 
                     // surroundings
                     buf.get_mut(center_x - 2, center_y - 1)
@@ -348,6 +438,52 @@ impl StatefulWidget for BoardWidget {
             if row == 9 {
                 break;
             }
+        }
+
+        // render position
+        if state.current_position.0 != 9 && state.current_position.1 != 9 {
+            let mut center_x: u16 = (state.current_position.1 * 8 + 1 + (area.x as usize) + 3)
+                .try_into()
+                .unwrap();
+            let mut center_y: u16 = (state.current_position.0 * 4 + 1 + (area.y as usize) + 1)
+                .try_into()
+                .unwrap();
+
+            if state.current_position.0 > 5 {
+                center_y += 2;
+            } else if state.current_position.0 > 2 {
+                center_y += 1;
+            };
+
+            if state.current_position.1 > 5 {
+                center_x += 2;
+            } else if state.current_position.1 > 2 {
+                center_x += 1;
+            };
+
+            buf.get_mut(center_x - 3, center_y - 2).set_char('.');
+            buf.get_mut(center_x - 2, center_y - 2).set_char('.');
+            buf.get_mut(center_x - 1, center_y - 2).set_char('.');
+            buf.get_mut(center_x, center_y - 2).set_char('.');
+            buf.get_mut(center_x + 1, center_y - 2).set_char('.');
+            buf.get_mut(center_x + 2, center_y - 2).set_char('.');
+            buf.get_mut(center_x + 3, center_y - 2).set_char('.');
+
+            buf.get_mut(center_x - 4, center_y - 1).set_char('.');
+            buf.get_mut(center_x - 4, center_y).set_char('.');
+            buf.get_mut(center_x - 4, center_y + 1).set_char('.');
+
+            buf.get_mut(center_x + 4, center_y - 1).set_char('.');
+            buf.get_mut(center_x + 4, center_y).set_char('.');
+            buf.get_mut(center_x + 4, center_y + 1).set_char('.');
+
+            buf.get_mut(center_x - 3, center_y + 2).set_char('.');
+            buf.get_mut(center_x - 2, center_y + 2).set_char('.');
+            buf.get_mut(center_x - 1, center_y + 2).set_char('.');
+            buf.get_mut(center_x, center_y + 2).set_char('.');
+            buf.get_mut(center_x + 1, center_y + 2).set_char('.');
+            buf.get_mut(center_x + 2, center_y + 2).set_char('.');
+            buf.get_mut(center_x + 3, center_y + 2).set_char('.');
         }
     }
 }

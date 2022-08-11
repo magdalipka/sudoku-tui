@@ -28,11 +28,11 @@ impl Default for Cell {
 
 impl Cell {
     pub fn add_option(&mut self, value: usize) {
-        self.options.values[value].valid = true;
+        self.options.values[value - 1].valid = true;
     }
 
     pub fn remove_option(&mut self, value: usize) {
-        self.options.values[value].valid = false;
+        self.options.values[value - 1].valid = false;
     }
 
     pub fn toggle_option(&mut self, value: usize) {

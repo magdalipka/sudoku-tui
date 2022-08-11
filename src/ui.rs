@@ -14,13 +14,16 @@ use tui::{
 use crate::{
     board::{Board, BoardWidget},
     events::{Event, Events},
+    grid::Grid,
 };
 
+#[derive(PartialEq)]
 enum Mode {
     Insert,
     Note,
     Mark,
     Show,
+    Features,
 }
 
 pub struct UI {
@@ -38,6 +41,13 @@ impl Default for UI {
 }
 
 impl UI {
+    pub fn from(grid: Grid) -> Self {
+        Self {
+            board: Board::from(grid),
+            mode: Mode::Insert,
+        }
+    }
+
     pub fn run(
         &mut self,
         mut terminal: Terminal<CrosstermBackend<Stdout>>,
@@ -47,6 +57,16 @@ impl UI {
             terminal
                 .draw(|frame| {
                     let terminal_rect = frame.size();
+
+                    // println!("{}, {}", terminal_rect.height, terminal_rect.width);
+
+                    if terminal_rect.width < 80 || terminal_rect.height < 45 {
+                        let message = Paragraph::new("Window is too small\nPlease expand window")
+                            .alignment(Alignment::Center);
+                        frame.render_widget(message, terminal_rect);
+
+                        return ();
+                    }
 
                     let outer_block = Block::default()
                         .borders(Borders::ALL)
@@ -59,16 +79,25 @@ impl UI {
                         .border_type(BorderType::Rounded);
                     frame.render_widget(outer_block, terminal_rect);
 
-                    let sudoku_rect = Rect {
-                        x: 0,
-                        y: 0,
-                        width: 35,
-                        height: 71,
-                    };
+                    if self.mode == Mode::Features {
+                        let menu = Paragraph::new(
+                            "Press button to select action:\n 1. Auto-fill \n 2. Hint",
+                        )
+                        .block(Block::default().title("Paragraph").borders(Borders::ALL));
 
-                    let board_widget = BoardWidget {};
+                        frame.render_widget(menu, terminal_rect);
+                    } else {
+                        let board_widget = BoardWidget {};
+                        frame.render_stateful_widget(
+                            board_widget,
+                            terminal_rect,
+                            self.board.borrow_mut(),
+                        )
+                    }
 
-                    frame.render_stateful_widget(board_widget, sudoku_rect, self.board.borrow_mut())
+                    // let menu_widget = Block::default();
+
+                    // frame.render_widget(widget, area)
                 })
                 .unwrap();
 
@@ -107,6 +136,13 @@ impl UI {
                         Key::Char('n') => self.mode = Mode::Note,
                         Key::Char('m') => self.mode = Mode::Mark,
                         Key::Char('s') => self.mode = Mode::Show,
+                        Key::Char('f') => {
+                            if self.mode == Mode::Features {
+                                self.mode = Mode::Insert;
+                            } else {
+                                self.mode = Mode::Features;
+                            }
+                        }
                         Key::Char('c') => self.board.reset_colors(),
 
                         Key::Ctrl('c') => break,
@@ -160,6 +196,15 @@ impl UI {
                                 Key::Char('9') => self.board.mark(9),
                                 _ => {}
                             },
+                            Mode::Features => match key {
+                                Key::Esc => self.mode = Mode::Insert,
+                                Key::Char('1') => {
+                                    self.board.autofill();
+                                    self.mode = Mode::Insert
+                                }
+                                _ => {}
+                            },
+
                             _ => {}
                         },
                     }

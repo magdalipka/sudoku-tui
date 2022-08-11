@@ -11,7 +11,7 @@ pub struct CellOption {
 impl Default for CellOption {
     fn default() -> Self {
         Self {
-            valid: true,
+            valid: false,
             fg: Color::White,
             bg: Color::Black,
             default_fg: Color::White,
