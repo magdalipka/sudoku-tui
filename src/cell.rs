@@ -53,6 +53,16 @@ impl Cell {
     pub fn reset_colors(&mut self) {
         self.reset_bg();
         self.reset_fg();
+
+        let mut y = 0;
+        loop {
+            self.options.values[y].reset_colors();
+
+            y += 1;
+            if y == 9 {
+                break;
+            }
+        }
     }
 }
 

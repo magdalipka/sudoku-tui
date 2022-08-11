@@ -106,6 +106,8 @@ impl UI {
                         Key::Char('i') => self.mode = Mode::Insert,
                         Key::Char('n') => self.mode = Mode::Note,
                         Key::Char('m') => self.mode = Mode::Mark,
+                        Key::Char('s') => self.mode = Mode::Show,
+                        Key::Char('c') => self.board.reset_colors(),
 
                         Key::Ctrl('c') => break,
                         _ => match self.mode {
@@ -135,15 +137,27 @@ impl UI {
                                 _ => {}
                             },
                             Mode::Show => match key {
-                                Key::Char('1') => self.board.hightlight(1),
-                                Key::Char('2') => self.board.hightlight(2),
-                                Key::Char('3') => self.board.hightlight(3),
-                                Key::Char('4') => self.board.hightlight(4),
-                                Key::Char('5') => self.board.hightlight(5),
-                                Key::Char('6') => self.board.hightlight(6),
-                                Key::Char('7') => self.board.hightlight(7),
-                                Key::Char('8') => self.board.hightlight(8),
-                                Key::Char('9') => self.board.hightlight(9),
+                                Key::Char('1') => self.board.highlight(1),
+                                Key::Char('2') => self.board.highlight(2),
+                                Key::Char('3') => self.board.highlight(3),
+                                Key::Char('4') => self.board.highlight(4),
+                                Key::Char('5') => self.board.highlight(5),
+                                Key::Char('6') => self.board.highlight(6),
+                                Key::Char('7') => self.board.highlight(7),
+                                Key::Char('8') => self.board.highlight(8),
+                                Key::Char('9') => self.board.highlight(9),
+                                _ => {}
+                            },
+                            Mode::Mark => match key {
+                                Key::Char('1') => self.board.mark(1),
+                                Key::Char('2') => self.board.mark(2),
+                                Key::Char('3') => self.board.mark(3),
+                                Key::Char('4') => self.board.mark(4),
+                                Key::Char('5') => self.board.mark(5),
+                                Key::Char('6') => self.board.mark(6),
+                                Key::Char('7') => self.board.mark(7),
+                                Key::Char('8') => self.board.mark(8),
+                                Key::Char('9') => self.board.mark(9),
                                 _ => {}
                             },
                             _ => {}

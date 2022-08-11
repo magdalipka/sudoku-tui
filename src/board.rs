@@ -3,6 +3,7 @@ use tui::{
     backend::CrosstermBackend,
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
+    style::Color,
     widgets::{Block, Borders, StatefulWidget, Widget},
     Terminal,
 };
@@ -54,10 +55,52 @@ impl Board {
         }
     }
 
-    pub fn hightlight(&mut self, value: usize) {
+    pub fn reset_colors(&mut self) {
         self.grid.reset_markings();
 
         todo!()
+    }
+
+    pub fn highlight(&mut self, value: usize) {
+        self.grid.reset_markings();
+
+        if value == 0 {
+            return ();
+        };
+
+        let mut y: usize = 0;
+        loop {
+            let mut x: usize = 0;
+            loop {
+                if self.grid.cells[y][x].value == value {
+                    self.grid.cells[y][x].bg = Color::Red;
+                    self.grid.cells[y][x].fg = Color::White;
+                } else if self.grid.cells[y][x].options.values[value - 1].valid {
+                    self.grid.cells[y][x].options.values[value - 1].bg = Color::Red;
+                    self.grid.cells[y][x].options.values[value - 1].fg = Color::White;
+                }
+
+                x += 1;
+                if x == 9 {
+                    break;
+                }
+            }
+            y += 1;
+            if y == 9 {
+                break;
+            }
+        }
+    }
+
+    pub fn mark(&mut self, value: usize) {
+        let (x, y) = self.current_position;
+        if !self.grid.cells[x][y].value != 0 {
+            self.grid.cells[x][y].options.values[value - 1].bg = Color::White;
+            self.grid.cells[x][y].options.values[value - 1].fg = Color::Magenta;
+        } else {
+            self.grid.cells[x][y].bg = Color::White;
+            self.grid.cells[x][y].fg = Color::Magenta;
+        }
     }
 }
 

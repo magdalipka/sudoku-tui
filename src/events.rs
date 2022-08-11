@@ -1,3 +1,6 @@
+// source:
+// https://github.com/MitchelPaulin/sudoku-rs/blob/main/src/events.rs
+
 use std::{io, sync::mpsc, thread, time::Duration};
 use termion::{event::Key, input::TermRead};
 
