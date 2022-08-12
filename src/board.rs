@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{cell::Cell, grid::Grid};
 use tui::{
     backend::CrosstermBackend,
@@ -40,11 +42,11 @@ impl Board {
     }
 
     pub fn move_right(&mut self) {
-        self.current_position.1 = (9 + self.current_position.1 + 1) % 9;
+        self.current_position.1 = (self.current_position.1 + 1) % 9;
     }
 
     pub fn move_left(&mut self) {
-        self.current_position.1 = (self.current_position.1 - 1) % 9;
+        self.current_position.1 = (9 + self.current_position.1 - 1) % 9;
     }
 
     pub fn set_value(&mut self, value: usize) {
@@ -59,7 +61,9 @@ impl Board {
         let mut i = 0;
         loop {
             self.grid.cells[i][self.current_position.1].remove_option(value);
+            self.grid.cells[i][self.current_position.1].options.values[value - 1].reset_colors();
             self.grid.cells[self.current_position.0][i].remove_option(value);
+            self.grid.cells[self.current_position.0][i].options.values[value - 1].reset_colors();
 
             i += 1;
             if i == 9 {
@@ -72,14 +76,23 @@ impl Board {
         let box_y: usize = y - (y % 3);
 
         self.grid.cells[box_y][box_x].remove_option(value);
+        self.grid.cells[box_y][box_x].options.values[value - 1].reset_colors();
         self.grid.cells[box_y][box_x + 1].remove_option(value);
+        self.grid.cells[box_y][box_x + 1].options.values[value - 1].reset_colors();
         self.grid.cells[box_y][box_x + 2].remove_option(value);
+        self.grid.cells[box_y][box_x + 2].options.values[value - 1].reset_colors();
         self.grid.cells[box_y + 1][box_x].remove_option(value);
+        self.grid.cells[box_y + 1][box_x].options.values[value - 1].reset_colors();
         self.grid.cells[box_y + 1][box_x + 1].remove_option(value);
+        self.grid.cells[box_y + 1][box_x + 1].options.values[value - 1].reset_colors();
         self.grid.cells[box_y + 1][box_x + 2].remove_option(value);
+        self.grid.cells[box_y + 1][box_x + 2].options.values[value - 1].reset_colors();
         self.grid.cells[box_y + 2][box_x].remove_option(value);
+        self.grid.cells[box_y + 2][box_x].options.values[value - 1].reset_colors();
         self.grid.cells[box_y + 2][box_x + 1].remove_option(value);
+        self.grid.cells[box_y + 2][box_x + 1].options.values[value - 1].reset_colors();
         self.grid.cells[box_y + 2][box_x + 2].remove_option(value);
+        self.grid.cells[box_y + 2][box_x + 2].options.values[value - 1].reset_colors();
     }
 
     pub fn toggle_option(&mut self, value: usize) {
@@ -87,13 +100,17 @@ impl Board {
         if !self.grid.cells[x][y].initial {
             self.grid.cells[x][y].value = 0;
             self.grid.cells[x][y].toggle_option(value);
+            if self.grid.cells[x][y].options.values[value - 1].valid {
+                self.grid.cells[x][y].options.values[value - 1].bg = Color::Red;
+                self.grid.cells[x][y].options.values[value - 1].fg = Color::White;
+            } else {
+                self.grid.cells[x][y].options.values[value - 1].reset_colors();
+            }
         }
     }
 
     pub fn reset_colors(&mut self) {
         self.grid.reset_markings();
-
-        todo!()
     }
 
     pub fn highlight(&mut self, value: usize) {

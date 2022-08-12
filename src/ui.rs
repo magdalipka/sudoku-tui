@@ -60,7 +60,7 @@ impl UI {
 
                     // println!("{}, {}", terminal_rect.height, terminal_rect.width);
 
-                    if terminal_rect.width < 80 || terminal_rect.height < 45 {
+                    if terminal_rect.width < 80 || terminal_rect.height < 40 {
                         let message = Paragraph::new("Window is too small\nPlease expand window")
                             .alignment(Alignment::Center);
                         frame.render_widget(message, terminal_rect);
@@ -107,27 +107,26 @@ impl UI {
                 Event::Input(key) => {
                     match key {
                         // movement using arrow keys or vim movement keys
-                        Key::Up | Key::Char('k') => self.board.move_up(),
-                        Key::Down | Key::Char('j') => self.board.move_down(),
-                        Key::Left | Key::Char('h') => self.board.move_left(),
-                        Key::Right | Key::Char('l') => self.board.move_right(),
-                        Key::Ctrl('k') => {
+                        Key::Up | Key::Char('w') => self.board.move_up(),
+                        Key::Down | Key::Char('s') => self.board.move_down(),
+                        Key::Left | Key::Char('a') => self.board.move_left(),
+                        Key::Right | Key::Char('d') => self.board.move_right(),
+                        Key::Char('W') => {
                             self.board.move_up();
                             self.board.move_up();
                             self.board.move_up();
                         }
-                        Key::Ctrl('j') => {
+                        Key::Char('S') => {
                             self.board.move_down();
                             self.board.move_down();
                             self.board.move_down();
-                            ();
                         }
-                        Key::Ctrl('h') => {
+                        Key::Char('A') => {
                             self.board.move_left();
                             self.board.move_left();
                             self.board.move_left();
                         }
-                        Key::Ctrl('l') => {
+                        Key::Char('D') => {
                             self.board.move_right();
                             self.board.move_right();
                             self.board.move_right();
@@ -135,7 +134,7 @@ impl UI {
                         Key::Char('i') => self.mode = Mode::Insert,
                         Key::Char('n') => self.mode = Mode::Note,
                         Key::Char('m') => self.mode = Mode::Mark,
-                        Key::Char('s') => self.mode = Mode::Show,
+                        Key::Char('h') => self.mode = Mode::Show,
                         Key::Char('f') => {
                             if self.mode == Mode::Features {
                                 self.mode = Mode::Insert;
