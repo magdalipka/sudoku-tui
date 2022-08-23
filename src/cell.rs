@@ -1,7 +1,7 @@
 use tui::style::Color;
 
 use crate::cell_options::CellOptions;
-
+use crate::theme::Theme;
 pub struct Cell {
     pub initial: bool,
     pub value: usize,
@@ -18,10 +18,10 @@ impl Default for Cell {
             initial: false,
             value: 0,
             options: CellOptions::default(),
-            fg: Color::White,
-            bg: Color::Black,
-            default_fg: Color::White,
-            default_bg: Color::Black,
+            fg: Theme::default().white,
+            bg: Theme::default().dark_grey,
+            default_fg: Theme::default().white,
+            default_bg: Theme::default().dark_grey,
         }
     }
 }

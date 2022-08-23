@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{cell::Cell, grid::Grid};
+use crate::{cell::Cell, grid::Grid, theme::Theme};
 use tui::{
     backend::CrosstermBackend,
     buffer::Buffer,
@@ -101,8 +101,8 @@ impl Board {
             self.grid.cells[x][y].value = 0;
             self.grid.cells[x][y].toggle_option(value);
             if self.grid.cells[x][y].options.values[value - 1].valid {
-                self.grid.cells[x][y].options.values[value - 1].bg = Color::Red;
-                self.grid.cells[x][y].options.values[value - 1].fg = Color::White;
+                self.grid.cells[x][y].options.values[value - 1].bg = Theme::default().red;
+                self.grid.cells[x][y].options.values[value - 1].fg = Theme::default().white;
             } else {
                 self.grid.cells[x][y].options.values[value - 1].reset_colors();
             }
@@ -113,9 +113,12 @@ impl Board {
         self.grid.reset_markings();
     }
 
-    pub fn highlight(&mut self, value: usize) {
+    pub fn highlight_only(&mut self, value: usize) {
         self.grid.reset_markings();
+        self.highlight(value);
+    }
 
+    pub fn highlight(&mut self, value: usize) {
         if value == 0 {
             return ();
         };
@@ -125,11 +128,11 @@ impl Board {
             let mut x: usize = 0;
             loop {
                 if self.grid.cells[y][x].value == value {
-                    self.grid.cells[y][x].bg = Color::Red;
-                    self.grid.cells[y][x].fg = Color::White;
+                    self.grid.cells[y][x].bg = Theme::default().blue;
+                    self.grid.cells[y][x].fg = Theme::default().black;
                 } else if self.grid.cells[y][x].options.values[value - 1].valid {
-                    self.grid.cells[y][x].options.values[value - 1].bg = Color::Red;
-                    self.grid.cells[y][x].options.values[value - 1].fg = Color::White;
+                    self.grid.cells[y][x].options.values[value - 1].bg = Theme::default().blue;
+                    self.grid.cells[y][x].options.values[value - 1].fg = Theme::default().black;
                 }
 
                 x += 1;
@@ -146,12 +149,10 @@ impl Board {
 
     pub fn mark(&mut self, value: usize) {
         let (x, y) = self.current_position;
-        if !self.grid.cells[x][y].value != 0 {
-            self.grid.cells[x][y].options.values[value - 1].bg = Color::White;
-            self.grid.cells[x][y].options.values[value - 1].fg = Color::Magenta;
-        } else {
-            self.grid.cells[x][y].bg = Color::White;
-            self.grid.cells[x][y].fg = Color::Magenta;
+        if self.grid.cells[x][y].value == 0 && self.grid.cells[x][y].options.values[value - 1].valid
+        {
+            self.grid.cells[x][y].options.values[value - 1].bg = Theme::default().purple;
+            self.grid.cells[x][y].options.values[value - 1].fg = Theme::default().black;
         }
     }
 
@@ -272,15 +273,30 @@ impl StatefulWidget for BoardWidget {
                             .set_char(value)
                             .set_bg(cell.bg)
                             .set_fg(cell.fg)
-                            .set_style(Style::default().add_modifier(Modifier::BOLD));
+                            .set_style(Style::default().add_modifier(Modifier::UNDERLINED));
                     } else {
                         buf.get_mut(center_x, center_y)
                             .set_char(value)
                             .set_bg(cell.bg)
-                            .set_fg(cell.fg);
+                            .set_fg(cell.fg)
+                            .set_style(
+                                Style::default()
+                                    .add_modifier(Modifier::UNDERLINED)
+                                    .add_modifier(Modifier::ITALIC),
+                            );
                     }
 
                     // surroundings
+                    buf.get_mut(center_x - 3, center_y - 1)
+                        .set_bg(cell.bg)
+                        .set_fg(cell.fg);
+                    buf.get_mut(center_x - 3, center_y)
+                        .set_bg(cell.bg)
+                        .set_fg(cell.fg);
+                    buf.get_mut(center_x - 3, center_y + 1)
+                        .set_bg(cell.bg)
+                        .set_fg(cell.fg);
+
                     buf.get_mut(center_x - 2, center_y - 1)
                         .set_bg(cell.bg)
                         .set_fg(cell.fg);
@@ -325,6 +341,16 @@ impl StatefulWidget for BoardWidget {
                         .set_bg(cell.bg)
                         .set_fg(cell.fg);
                     buf.get_mut(center_x + 2, center_y + 1)
+                        .set_bg(cell.bg)
+                        .set_fg(cell.fg);
+
+                    buf.get_mut(center_x + 3, center_y - 1)
+                        .set_bg(cell.bg)
+                        .set_fg(cell.fg);
+                    buf.get_mut(center_x + 3, center_y)
+                        .set_bg(cell.bg)
+                        .set_fg(cell.fg);
+                    buf.get_mut(center_x + 3, center_y + 1)
                         .set_bg(cell.bg)
                         .set_fg(cell.fg);
                 } else {

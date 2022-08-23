@@ -1,5 +1,7 @@
 use tui::style::Color;
 
+use crate::theme::Theme;
+
 pub struct CellOption {
     pub valid: bool,
     pub fg: Color,
@@ -12,10 +14,10 @@ impl Default for CellOption {
     fn default() -> Self {
         Self {
             valid: false,
-            fg: Color::White,
-            bg: Color::Black,
-            default_fg: Color::White,
-            default_bg: Color::Black,
+            fg: Theme::default().white,
+            bg: Theme::default().dark_grey,
+            default_fg: Theme::default().white,
+            default_bg: Theme::default().dark_grey,
         }
     }
 }

@@ -5,6 +5,7 @@ mod column;
 mod events;
 mod grid;
 mod row;
+mod theme;
 mod ui;
 
 use crate::events::Events;

@@ -15,6 +15,7 @@ use crate::{
     board::{Board, BoardWidget},
     events::{Event, Events},
     grid::Grid,
+    theme::Theme,
 };
 
 #[derive(PartialEq)]
@@ -22,7 +23,8 @@ enum Mode {
     Insert,
     Note,
     Mark,
-    Show,
+    Highlight,
+    HighlightOnly,
     Features,
 }
 
@@ -73,7 +75,7 @@ impl UI {
                         .title(Span::styled(
                             "sudoku",
                             Style::default()
-                                .fg(Color::Green)
+                                .fg(Theme::default().green)
                                 .add_modifier(Modifier::BOLD),
                         ))
                         .border_type(BorderType::Rounded);
@@ -94,10 +96,6 @@ impl UI {
                             self.board.borrow_mut(),
                         )
                     }
-
-                    // let menu_widget = Block::default();
-
-                    // frame.render_widget(widget, area)
                 })
                 .unwrap();
 
@@ -134,7 +132,8 @@ impl UI {
                         Key::Char('i') => self.mode = Mode::Insert,
                         Key::Char('n') => self.mode = Mode::Note,
                         Key::Char('m') => self.mode = Mode::Mark,
-                        Key::Char('h') => self.mode = Mode::Show,
+                        Key::Char('h') => self.mode = Mode::HighlightOnly,
+                        Key::Char('H') => self.mode = Mode::Highlight,
                         Key::Char('f') => {
                             if self.mode == Mode::Features {
                                 self.mode = Mode::Insert;
@@ -171,7 +170,7 @@ impl UI {
                                 Key::Char('9') => self.board.toggle_option(9),
                                 _ => {}
                             },
-                            Mode::Show => match key {
+                            Mode::Highlight => match key {
                                 Key::Char('1') => self.board.highlight(1),
                                 Key::Char('2') => self.board.highlight(2),
                                 Key::Char('3') => self.board.highlight(3),
@@ -181,6 +180,18 @@ impl UI {
                                 Key::Char('7') => self.board.highlight(7),
                                 Key::Char('8') => self.board.highlight(8),
                                 Key::Char('9') => self.board.highlight(9),
+                                _ => {}
+                            },
+                            Mode::HighlightOnly => match key {
+                                Key::Char('1') => self.board.highlight_only(1),
+                                Key::Char('2') => self.board.highlight_only(2),
+                                Key::Char('3') => self.board.highlight_only(3),
+                                Key::Char('4') => self.board.highlight_only(4),
+                                Key::Char('5') => self.board.highlight_only(5),
+                                Key::Char('6') => self.board.highlight_only(6),
+                                Key::Char('7') => self.board.highlight_only(7),
+                                Key::Char('8') => self.board.highlight_only(8),
+                                Key::Char('9') => self.board.highlight_only(9),
                                 _ => {}
                             },
                             Mode::Mark => match key {
