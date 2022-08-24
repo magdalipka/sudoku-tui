@@ -11,8 +11,8 @@ use tui::{
 };
 //
 pub struct Board {
-    grid: Grid,
-    current_position: (usize, usize),
+    pub grid: Grid,
+    pub current_position: (usize, usize),
 }
 
 impl Default for Board {
@@ -147,11 +147,11 @@ impl Board {
         }
     }
 
-    pub fn mark(&mut self, value: usize) {
+    pub fn mark(&mut self, value: usize, color: Color) {
         let (x, y) = self.current_position;
         if self.grid.cells[x][y].value == 0 && self.grid.cells[x][y].options.values[value - 1].valid
         {
-            self.grid.cells[x][y].options.values[value - 1].bg = Theme::default().purple;
+            self.grid.cells[x][y].options.values[value - 1].bg = color;
             self.grid.cells[x][y].options.values[value - 1].fg = Theme::default().black;
         }
     }

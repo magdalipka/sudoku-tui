@@ -5,6 +5,7 @@ mod column;
 mod events;
 mod grid;
 mod row;
+mod sync;
 mod theme;
 mod ui;
 
@@ -18,6 +19,7 @@ use crossterm::{
 use grid::Grid;
 use std::env;
 use std::{io, thread};
+use sync::load;
 use tui::{backend::CrosstermBackend, Terminal};
 use ui::UI;
 
@@ -25,11 +27,14 @@ fn main() -> Result<(), io::Error> {
     let args: Vec<String> = env::args().collect();
     let input = &args[1];
 
-    if input.len() != 81 {
+    let grid: Grid;
+    if input.ends_with(".sudoku") {
+        grid = load(input);
+    } else if input.len() == 81 {
+        grid = Grid::from(input.to_string());
+    } else {
         return Ok(());
     }
-
-    let grid: Grid = Grid::from(input.to_string());
 
     // setup terminal
     enable_raw_mode()?;

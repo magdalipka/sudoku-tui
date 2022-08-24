@@ -15,6 +15,7 @@ use crate::{
     board::{Board, BoardWidget},
     events::{Event, Events},
     grid::Grid,
+    sync::save,
     theme::Theme,
 };
 
@@ -26,11 +27,13 @@ enum Mode {
     Highlight,
     HighlightOnly,
     Features,
+    MarkColorSelect,
 }
 
 pub struct UI {
     board: Board,
     mode: Mode,
+    mark_selected_color: Color,
 }
 
 impl Default for UI {
@@ -38,6 +41,7 @@ impl Default for UI {
         Self {
             board: Board::default(),
             mode: Mode::Insert,
+            mark_selected_color: Theme::default().purple,
         }
     }
 }
@@ -47,6 +51,7 @@ impl UI {
         Self {
             board: Board::from(grid),
             mode: Mode::Insert,
+            mark_selected_color: Theme::default().purple,
         }
     }
 
@@ -83,11 +88,50 @@ impl UI {
 
                     if self.mode == Mode::Features {
                         let menu = Paragraph::new(
-                            "Press button to select action:\n 1. Auto-fill \n 2. Hint",
+                            "Press button to select action:\n 1. Auto-fill \n 2. Hint \n 3. Save",
                         )
                         .block(Block::default().title("Paragraph").borders(Borders::ALL));
 
                         frame.render_widget(menu, terminal_rect);
+
+                        // let menu = Paragraph::new("black")
+                        //     .style(Style::default().bg(Color::Rgb(255, 0, 0)));
+
+                        // let blocks = Layout::default()
+                        //     .direction(Direction::Horizontal)
+                        //     .constraints(
+                        //         [
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //             Constraint::Ratio(1, 9),
+                        //         ]
+                        //         .as_ref(),
+                        //     )
+                        //     .split(terminal_rect);
+
+                        // let colors = [
+                        //     Color::Rgb(31, 35, 53),
+                        //     Color::Rgb(247, 118, 142),
+                        //     Color::Rgb(115, 218, 202),
+                        //     Color::Rgb(224, 175, 104),
+                        //     Color::Rgb(122, 162, 247),
+                        //     Color::Rgb(187, 154, 247),
+                        //     Color::Rgb(127, 207, 255),
+                        //     Color::Rgb(121, 130, 169),
+                        //     Color::Rgb(169, 177, 214),
+                        // ];
+
+                        // for (index, rect) in blocks.into_iter().enumerate() {
+                        //     let menu =
+                        //         Paragraph::new("black").style(Style::default().bg(colors[index]));
+                        //     frame.render_widget(menu, rect)
+                        // }
                     } else {
                         let board_widget = BoardWidget {};
                         frame.render_stateful_widget(
@@ -132,6 +176,7 @@ impl UI {
                         Key::Char('i') => self.mode = Mode::Insert,
                         Key::Char('n') => self.mode = Mode::Note,
                         Key::Char('m') => self.mode = Mode::Mark,
+                        Key::Char('M') => self.mode = Mode::MarkColorSelect,
                         Key::Char('h') => self.mode = Mode::HighlightOnly,
                         Key::Char('H') => self.mode = Mode::Highlight,
                         Key::Char('f') => {
@@ -142,7 +187,6 @@ impl UI {
                             }
                         }
                         Key::Char('c') => self.board.reset_colors(),
-
                         Key::Ctrl('c') => break,
                         _ => match self.mode {
                             Mode::Insert => match key {
@@ -195,22 +239,64 @@ impl UI {
                                 _ => {}
                             },
                             Mode::Mark => match key {
-                                Key::Char('1') => self.board.mark(1),
-                                Key::Char('2') => self.board.mark(2),
-                                Key::Char('3') => self.board.mark(3),
-                                Key::Char('4') => self.board.mark(4),
-                                Key::Char('5') => self.board.mark(5),
-                                Key::Char('6') => self.board.mark(6),
-                                Key::Char('7') => self.board.mark(7),
-                                Key::Char('8') => self.board.mark(8),
-                                Key::Char('9') => self.board.mark(9),
+                                Key::Char('1') => self.board.mark(1, self.mark_selected_color),
+                                Key::Char('2') => self.board.mark(2, self.mark_selected_color),
+                                Key::Char('3') => self.board.mark(3, self.mark_selected_color),
+                                Key::Char('4') => self.board.mark(4, self.mark_selected_color),
+                                Key::Char('5') => self.board.mark(5, self.mark_selected_color),
+                                Key::Char('6') => self.board.mark(6, self.mark_selected_color),
+                                Key::Char('7') => self.board.mark(7, self.mark_selected_color),
+                                Key::Char('8') => self.board.mark(8, self.mark_selected_color),
+                                Key::Char('9') => self.board.mark(9, self.mark_selected_color),
+                                _ => {}
+                            },
+                            Mode::MarkColorSelect => match key {
+                                Key::Char('1') => {
+                                    self.mark_selected_color = Theme::default().white;
+                                    self.mode = Mode::Mark;
+                                }
+                                Key::Char('2') => {
+                                    self.mark_selected_color = Theme::default().black;
+                                    self.mode = Mode::Mark;
+                                }
+                                Key::Char('3') => {
+                                    self.mark_selected_color = Theme::default().red;
+                                    self.mode = Mode::Mark;
+                                }
+                                Key::Char('4') => {
+                                    self.mark_selected_color = Theme::default().green;
+                                    self.mode = Mode::Mark;
+                                }
+                                Key::Char('5') => {
+                                    self.mark_selected_color = Theme::default().yellow;
+                                    self.mode = Mode::Mark;
+                                }
+                                Key::Char('6') => {
+                                    self.mark_selected_color = Theme::default().blue;
+                                    self.mode = Mode::Mark;
+                                }
+                                Key::Char('7') => {
+                                    self.mark_selected_color = Theme::default().purple
+                                }
+                                Key::Char('8') => {
+                                    self.mark_selected_color = Theme::default().cyan;
+                                    self.mode = Mode::Mark;
+                                }
+                                Key::Char('9') => {
+                                    self.mark_selected_color = Theme::default().grey;
+                                    self.mode = Mode::Mark;
+                                }
                                 _ => {}
                             },
                             Mode::Features => match key {
                                 Key::Esc => self.mode = Mode::Insert,
                                 Key::Char('1') => {
                                     self.board.autofill();
-                                    self.mode = Mode::Insert
+                                    self.mode = Mode::Insert;
+                                }
+                                Key::Char('3') => {
+                                    save(&self.board.grid);
+                                    self.mode = Mode::Insert;
                                 }
                                 _ => {}
                             },
