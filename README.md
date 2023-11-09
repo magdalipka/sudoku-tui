@@ -32,5 +32,5 @@ Press letter to enter mode.
 - `M` color selection - pressing number will select color for future marking
 - `f` menu - menu will be displayed
 
-
+![Screenshot - Sudoku TUI](./static/screenshot.png)
 
